@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 纯设备端推理，无运行时联网；无需任何权限 -->
+
+    <application
+        android:allowBackup="true"
+        android:label="ppocrv3"
+        android:supportsRtl="true">
+
+        <!-- Auto.js Pro 插件注册：name 固定，value 为 PluginRegistry 实现类的全路径 -->
+        <meta-data
+            android:name="org.autojs.plugin.sdk.registry"
+            android:value="com.kkx.ppocrv3.PpOcrV3PluginRegistry" />
+    </application>
+
+</manifest>

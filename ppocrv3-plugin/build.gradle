@@ -1,0 +1,20 @@
+// 顶层 build.gradle（Auto.js Pro 插件工程）
+// 参考：https://www.daowuya.love/autojspro插件开发流程/
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://mirrors.tencent.com/nexus/repository/maven-public/' }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.2.2'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}

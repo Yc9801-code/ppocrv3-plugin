@@ -1,0 +1,3 @@
+# 模型与字典体积大，不纳入版本管理；用 scripts/download_models.sh 生成
+*.nb
+ppocr_keys_v1.txt

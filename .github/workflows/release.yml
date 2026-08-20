@@ -62,7 +62,7 @@ jobs:
           else
             TAG="${{ github.event.inputs.version }}"
           fi
-          gradle assembleRelease -Pvname="$TAG" -Pvcode="$(echo "$TAG" | tr -d .)"
+          gradle assembleRelease -Pvname="1.1.5" -Pvcode="115"$TAG" | tr -d .)"
 
       - name: 准备签名 keystore（必须 Secrets 注入，缺失则报错）
         run: |

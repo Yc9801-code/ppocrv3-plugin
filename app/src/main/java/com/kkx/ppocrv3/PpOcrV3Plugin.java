@@ -45,7 +45,7 @@ public class PpOcrV3Plugin extends Plugin {
 
     /** 插件版本 */
     public String version() {
-        return "1.0.0";
+        return "1.1.5";
     }
 
     /** 初始化模型。tiny=true 使用 PP-OCRv3-tiny 量化模型 */

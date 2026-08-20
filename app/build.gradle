@@ -1,0 +1,75 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.kkx.ppocrv3'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.kkx.ppocrv3'
+        minSdk 21
+        targetSdk 34
+        versionCode 100
+        versionName '1.0.0'
+
+        // 关键修复点：把 v7a 与 v8a 两套 native 库都打进同一个 APK。
+        // 旧插件把两个架构拆成两个独立 APK，宿主进程位宽(32/64)与插件 .so 不一致时
+        // 就报 UnsatisfiedLinkError: ... is 32-bit instead of 64-bit。
+        // 同包内置双架构后，系统会自动抽取匹配宿主位宽的 .so，彻底消除该问题。
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a'
+        }
+    }
+
+    // 不用 splits 按架构拆包，保持单 APK 双架构。
+    buildTypes {
+        release {
+            minifyEnabled false   // 插件默认不混淆；如需加固见 README「混淆建议」
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    // 插件不发布到应用商店，放宽 lint 以免构建被警告阻断
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+
+    // Paddle Lite 的 JNI so 放在 src/main/jniLibs/<abi>/，由 aapt 自动打入 lib/<abi>/
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['src/main/jniLibs']
+        }
+    }
+
+    // 模型文件(.nb)和字典放在 assets，默认不压缩，避免安装后再解压耗时
+    aaptOptions {
+        noCompress 'nb', 'txt'
+    }
+}
+
+dependencies {
+    // Auto.js Pro 插件 SDK（教程指定坐标）
+    implementation 'com.github.hyb1996:Auto.js-Plugin-SDK:0.2'
+
+    // Paddle Lite Java 推理库（手动放置，见 scripts/download_deps.sh）
+    // 官方未发布到 Maven Central，故把 PaddlePredictor.jar 放 app/libs/，
+    // libpaddle_lite_jni.so 放 app/src/main/jniLibs/<abi>/。
+    implementation files('libs/PaddlePredictor.jar')
+
+    // 如需改用 Maven 坐标（若官方未来发布），可替换为下行并删除上面的 files()：
+    // implementation 'com.baidu.paddle:inference:2.12.0'
+}

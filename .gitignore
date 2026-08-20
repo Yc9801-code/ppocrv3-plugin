@@ -1,0 +1,23 @@
+# 本地 Android SDK 路径（CI 会自动生成，勿提交）
+local.properties
+
+# Gradle / 构建产物
+.gradle/
+build/
+app/build/
+**/build/
+
+# 下载脚本产出的依赖与模型（按需本地生成，勿提交）
+app/libs/
+app/src/main/jniLibs/
+app/src/main/assets/ppocrv3/*.nb
+app/src/main/assets/ppocrv3/ppocr_keys_v1.txt
+
+# 签名密钥（仅以 Secrets 注入，禁止提交到仓库）
+*.keystore
+*.jks
+
+# IDE
+*.iml
+.idea/
+.DS_Store

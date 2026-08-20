@@ -1,0 +1,92 @@
+name: Build ppocrv3 Plugin APK
+
+on:
+  workflow_dispatch:        # 手动在 Actions 页面点一下即可出包（开发/自测用）
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 配置 JDK 17（AGP 8.2 需要）
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: 配置 Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 安装编译平台与 build-tools（含 apksigner/zipalign）
+        run: |
+          yes | sdkmanager --licenses
+          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+
+      - name: 配置 Gradle 8.2
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.2'
+
+      - name: 配置 Python 与 paddlelite（用于把模型转成 .nb）
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install paddlelite
+
+      - name: 下载 Paddle Lite 预测库（jar + jni so）
+        run: bash scripts/download_deps.sh
+
+      - name: 下载 PP-OCRv3 模型并转成 .nb
+        run: bash scripts/download_models.sh
+
+      - name: 写入 local.properties（指向 Android SDK）
+        run: echo "sdk.dir=$ANDROID_HOME" > local.properties
+
+      - name: 编译 release APK（不签名，后续用 apksigner 自签）
+        run: gradle assembleRelease -x lintVitalRelease
+
+      - name: 准备签名 keystore（优先 Secrets 注入，缺失则临时生成）
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$GITHUB_WORKSPACE/release.keystore"
+            echo "已使用仓库 Secrets 中的 keystore"
+          else
+            echo "未配置 KEYSTORE_BASE64，生成临时自签名 keystore（仅适合自测）"
+            keytool -genkeypair -v \
+              -keystore "$GITHUB_WORKSPACE/release.keystore" \
+              -alias ppocrv3 -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass android -keypass android \
+              -dname "CN=ppocrv3,O=kkx,C=CN"
+            echo "KEYSTORE_PASSWORD=android" >> "$GITHUB_ENV"
+            echo "KEY_ALIAS=ppocrv3" >> "$GITHUB_ENV"
+            echo "KEY_PASSWORD=android" >> "$GITHUB_ENV"
+          fi
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+
+      - name: 对齐并签名 APK
+        run: |
+          cd app/build/outputs/apk/release
+          UNSIGNED=$(ls app-release-unsigned.apk 2>/dev/null || ls *.apk | head -n1)
+          KP="${KEYSTORE_PASSWORD:-android}"
+          ALIAS="${KEY_ALIAS:-ppocrv3}"
+          KPASS="${KEY_PASSWORD:-android}"
+          $ANDROID_HOME/build-tools/34.0.0/zipalign -p 4 "$UNSIGNED" aligned.apk
+          $ANDROID_HOME/build-tools/34.0.0/apksigner sign \
+            --ks "$GITHUB_WORKSPACE/release.keystore" \
+            --ks-key-alias "$ALIAS" \
+            --ks-pass "pass:$KP" --key-pass "pass:$KPASS" \
+            --out ppocrv3-plugin.apk aligned.apk
+          ls -lh ppocrv3-plugin.apk
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: 上传 APK 产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: ppocrv3-plugin-apk
+          path: app/build/outputs/apk/release/ppocrv3-plugin.apk

@@ -10,8 +10,8 @@ android {
         applicationId 'com.kkx.ppocrv3'
         minSdk 21
         targetSdk 34
-        versionCode 100
-        versionName '1.0.0'
+        versionCode project.hasProperty('vcode') ? vcode.toInteger() : 100
+        versionName project.hasProperty('vname') ? vname : '1.0.0'
 
         // 关键修复点：把 v7a 与 v8a 两套 native 库都打进同一个 APK。
         // 旧插件把两个架构拆成两个独立 APK，宿主进程位宽(32/64)与插件 .so 不一致时

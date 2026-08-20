@@ -56,13 +56,7 @@ jobs:
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
       - name: 编译 release APK（不签名，后续用 apksigner 自签）
-        run: |
-          if [ -n "$GITHUB_REF_NAME" ]; then
-            TAG="${GITHUB_REF_NAME#v}"
-          else
-            TAG="${{ github.event.inputs.version }}"
-          fi
-          gradle assembleRelease -Pvname="1.1.5" -Pvcode="115"$TAG" | tr -d .)"
+        run: gradle assembleRelease
 
       - name: 准备签名 keystore（必须 Secrets 注入，缺失则报错）
         run: |

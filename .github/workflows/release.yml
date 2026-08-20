@@ -56,7 +56,7 @@ jobs:
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties
 
       - name: 编译 release APK（不签名，后续用 apksigner 自签）
-        run: gradle assembleRelease -x lintVitalRelease
+        run: gradle assembleRelease -x lintVitalRelease --stacktrace
 
       - name: 准备签名 keystore（必须 Secrets 注入，缺失则报错）
         run: |

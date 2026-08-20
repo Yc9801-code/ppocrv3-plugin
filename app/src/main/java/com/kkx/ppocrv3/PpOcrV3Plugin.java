@@ -3,6 +3,7 @@ package com.kkx.ppocrv3;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 
 import org.autojs.plugin.sdk.Plugin;
 import org.json.JSONArray;
@@ -28,6 +29,7 @@ public class PpOcrV3Plugin extends Plugin {
     private OcrEngine engine;
     private Boolean currentTiny;
     private Context selfContext;
+    private String lastError;
 
     public PpOcrV3Plugin(Context context, Context selfContext,
                          Object runtime, Object topLevelScope) {
@@ -48,6 +50,7 @@ public class PpOcrV3Plugin extends Plugin {
 
     /** 初始化模型。tiny=true 使用 PP-OCRv3-tiny 量化模型 */
     public boolean init(boolean tiny) {
+        lastError = null;
         try {
             if (engine == null || currentTiny == null || currentTiny != tiny) {
                 if (engine != null) engine.release();
@@ -56,7 +59,8 @@ public class PpOcrV3Plugin extends Plugin {
                 currentTiny = tiny;
             }
             return true;
-        } catch (IOException e) {
+        } catch (Throwable e) {
+            lastError = Log.getStackTraceString(e);
             e.printStackTrace();
             return false;
         }
@@ -68,6 +72,7 @@ public class PpOcrV3Plugin extends Plugin {
             int[] range = parseRange(rangeJson);
             return engine.recognize(bitmap, (float) conf, range, (float) scale);
         } catch (Exception e) {
+            lastError = Log.getStackTraceString(e);
             e.printStackTrace();
             return "[]";
         }
@@ -82,6 +87,11 @@ public class PpOcrV3Plugin extends Plugin {
         } finally {
             bmp.recycle();
         }
+    }
+
+    /** 返回上次 init 失败的原因（排错用） */
+    public String lastError() {
+        return lastError == null ? "" : lastError;
     }
 
     /** 释放模型、回收内存（脚本退出时调用） */

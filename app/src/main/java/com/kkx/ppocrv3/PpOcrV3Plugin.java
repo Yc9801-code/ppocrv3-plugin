@@ -27,10 +27,12 @@ public class PpOcrV3Plugin extends Plugin {
 
     private OcrEngine engine;
     private Boolean currentTiny;
+    private Context selfContext;
 
     public PpOcrV3Plugin(Context context, Context selfContext,
                          Object runtime, Object topLevelScope) {
         super(context, selfContext, runtime, topLevelScope);
+        this.selfContext = selfContext;
     }
 
     /** 返回 JS 胶水层(index.js)所在的 assets 子目录 */

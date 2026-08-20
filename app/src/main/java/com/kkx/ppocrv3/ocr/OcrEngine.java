@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -78,7 +79,7 @@ public final class OcrEngine {
      * @return JSON 字符串：[{text, region:[l,t,r,b], center:[cx,cy], confidence}]
      */
     public synchronized String recognize(Bitmap bitmap, float conf,
-                                          int[] range, float scale) throws IOException {
+                                          int[] range, float scale) throws IOException, JSONException {
         if (!ready) throw new IllegalStateException("请先调用 init() 初始化模型");
 
         boolean derived = false;

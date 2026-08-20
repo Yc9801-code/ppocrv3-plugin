@@ -42,10 +42,10 @@ convert() {
     --optimize_out "$ASSETS/$out" \
     --valid_targets arm
 }
-convert det      det.nb
-convert rec      rec.nb
-convert det_slim det_tiny.nb
-convert rec_slim rec_tiny.nb
+convert det      det
+convert rec      rec
+convert det_slim det_tiny
+convert rec_slim rec_tiny
 
 echo "[4/4] 校验产物 ..."
 ls -lh "$ASSETS"
